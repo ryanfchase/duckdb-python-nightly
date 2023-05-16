@@ -8,8 +8,8 @@ The following will seed a persistent duckdb database called `duckdb_python/db/ma
 
 Perform the following steps from the terminal  
 _Tip: If you want to know what each step is doing, hover over it for an explaination_:
-* <a href="#" title="Clones this project" style="color: black;">git clone git@github.com:edwinjue/duckdb-python.git</a>
-* <a href="#" title="Changes to the project's root directory">cd duckdb-python</a>
+* <a href="#" title="Clones this project" style="color: black; text-decoration: none;">git clone git@github.com:edwinjue/duckdb-python.git</a>
+* <a href="#" title="Changes to the project's root directory" style="color: black; text-decoration: none;>cd duckdb-python</a>
 * <a href="#" title="Sets up a python virtual environment so any dependencies installed will be for this project only">python -m virtualenv venv</a>
 * <a href="#" title="Activates the virtual environment created above">source ./venv/bin/activate</a>
 * <a href="#" title="Installs all project dependencies">pip install -r requirements.txt</a>
