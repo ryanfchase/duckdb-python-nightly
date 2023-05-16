@@ -15,5 +15,5 @@ Perform the following steps from the terminal:
 * mkdir -p duckdb_python/db
 * python main.py
 
-# Special Thanks
-* https://marclamberti.com/blog/duckdb-getting-started-for-beginners/
+# Credit
+* This tutorial was based on the following [tutorial](https://marclamberti.com/blog/duckdb-getting-started-for-beginners/) by marclamberti
