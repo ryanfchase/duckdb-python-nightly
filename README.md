@@ -16,4 +16,4 @@ Perform the following steps from the terminal:
 * python main.py
 
 # Credit
-* This tutorial was based on the following [tutorial](https://marclamberti.com/blog/duckdb-getting-started-for-beginners/) by marclamberti
+* This project was based on the following [tutorial](https://marclamberti.com/blog/duckdb-getting-started-for-beginners/) by marclamberti
