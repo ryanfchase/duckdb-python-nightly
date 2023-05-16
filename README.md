@@ -13,7 +13,7 @@ Perform the following steps from the terminal:
 * mkdir -p duckdb_python/data/csv
 * mkdir -p duckdb_python/data/parquet
 * mkdir -p duckdb_python/db
-* python main.py
+* python [main.py](https://github.com/edwinjue/duckdb-python/blob/main/main.py)
 
 # Credit
 * This project was based on the following [tutorial](https://marclamberti.com/blog/duckdb-getting-started-for-beginners/) by marclamberti
