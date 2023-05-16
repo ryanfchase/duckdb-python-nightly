@@ -9,6 +9,8 @@ The following will seed a persistent duckdb database called `duckdb_python/db/ma
 Perform the following steps from the terminal:
 * git clone git@github.com:edwinjue/duckdb-python.git
 * cd duckdb-python
+* python -m virtualenv venv
+* source ./venv/bin/activate
 * pip install -r requirements.txt
 * mkdir -p duckdb_python/data/csv
 * mkdir -p duckdb_python/data/parquet
