@@ -1,18 +1,18 @@
 import duckdb
 import csv
-from duckdb_python.utils.data_converter import generate_parquet_from_csv
-from duckdb_python.config import settings
+from utils.data_converter import generate_parquet_from_csv
+from config import settings
 from datetime import datetime
 
 # Convert it for more efficient processing
 # generate_parquet_from_csv() # Converts csv to parquet
-
 
 import requests
 import concurrent.futures
 
 def make_api_request(url, params, headers):
   response = requests.get(url, params=params, headers=headers)
+  response.raise_for_status()
   return response.text
 
 def main():
