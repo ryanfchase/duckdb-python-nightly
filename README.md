@@ -15,6 +15,7 @@ Perform the following steps from the terminal
 * mkdir -p duckdb_python/data/csv
 * mkdir -p duckdb_python/data/parquet
 * mkdir -p duckdb_python/db
+* curl -o ./duckdb_python/data/csv/requests.csv -O https://data.lacity.org/api/views/4a4x-mna2/rows.csv?accessType=DOWNLOAD
 * python [main.py](https://github.com/edwinjue/duckdb-python/blob/main/main.py)
 
 # Credit
