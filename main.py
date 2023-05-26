@@ -1,47 +1,41 @@
 import duckdb
-import csv
-from utils.data_converter import generate_parquet_from_csv
+import os
+import glob
+
+from utils.generate_parquet_from_csv import generate_parquet_from_csv
+from utils.fetch_csv_from_api import fetch_csv_from_api
 from config import settings
-from datetime import datetime
 
 # Convert it for more efficient processing
 # generate_parquet_from_csv() # Converts csv to parquet
 
-import requests
-import concurrent.futures
-
-def make_api_request(url, params, headers):
-  response = requests.get(url, params=params, headers=headers)
-  response.raise_for_status()
-  return response.text
+url_2023 = "https://data.lacity.org/resource/4a4x-mna2.csv"
+url_2022 = "https://data.lacity.org/resource/i5ke-k6by.csv"
+url_2021 = "https://data.lacity.org/resource/97z7-y5bt.csv"
+url_2020 = "https://data.lacity.org/resource/rq3b-xjk8.csv"
+url_2019 = "https://data.lacity.org/resource/pvft-t768.csv"
+url_2018 = "https://data.lacity.org/resource/h65r-yf5i.csv"
+url_2017 = "https://data.lacity.org/resource/d4vt-q4t5.csv"
 
 def main():
   should_api_call = input("get latest API data? (Y/N): ")
   if should_api_call.lower() == "y":
 
-    url_2023 = "https://data.lacity.org/resource/4a4x-mna2.csv"
-    url_2022 = "https://data.lacity.org/resource/i5ke-k6by.csv"
-    url_2021 = "https://data.lacity.org/resource/97z7-y5bt.csv"
-    url_2020 = "https://data.lacity.org/resource/rq3b-xjk8.csv"
-    url_2019 = "https://data.lacity.org/resource/pvft-t768.csv"
-    url_2018 = "https://data.lacity.org/resource/h65r-yf5i.csv"
-    url_2017 = "https://data.lacity.org/resource/d4vt-q4t5.csv"
+    # Delete existing csv files
+    curr_csv_files = glob.glob(f'{settings.csv_data_path}/*.csv')
+    for f in curr_csv_files:
+      try:
+        os.remove(f)
+      except Exception as e:
+        print(f"Error occurred during file deletion. Status code: {e}")
+
     url = "https://data.lacity.org/resource/4a4x-mna2.csv"
-    # params = {"$limit": 1000}
-    params = {}
-    headers = {"X-App-Token": "96oEumCRBDNlRk6OCI0VRYknl"}
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-      future = executor.submit(make_api_request, url, params, headers)
-      result = future.result() # Waits for the future to complete
+    max_rows = 2000000
+    batch_size = 100000
+    offset = 0
 
-    # filename = "api_data.csv"
-    currentTime = datetime.now().strftime("%Y%m%d%H%M%S")
-    filename = f'{settings.csv_data_path}/api_data_{currentTime}.csv'
-    with open(filename, "w", newline="") as csvfile:
-      csvfile.write(result)
-
-    print(f"Data saved to {filename} successfully.")
+    fetch_csv_from_api(url, max_rows, batch_size, offset)
 
   should_parquet_transform = input("transform the CSV data to parquet? (Y/N): ")
   if should_parquet_transform.lower() == "y":
@@ -59,6 +53,7 @@ def main():
   if should_test_database.lower() == "y":
 
     # Query it
+    conn = duckdb.connect(database=settings.db_path, read_only=False)
     res = conn.execute(f"select * from requests limit 1").fetchall()
 
     # Output it
@@ -70,14 +65,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-
-
-# response = requests.get(url, params=params)
-
-# if response.status_code == 200:
-#   # API request successful
-#   csv_data = response.text
-#   # Process the CSV data as needed
-#   print(csv_data)
-# else:
-#   print("Error occurred during API request. Status code: ", response.status_code)
