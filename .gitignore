@@ -1,5 +1,6 @@
-# Don't include the following files in the repository
-db/duckdb
+# Ignore data, db, and other project specific files
+data/
+db/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

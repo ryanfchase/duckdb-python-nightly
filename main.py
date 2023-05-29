@@ -4,43 +4,54 @@ import glob
 
 from utils.generate_parquet_from_csv import generate_parquet_from_csv
 from utils.fetch_csv_from_api import fetch_csv_from_api
+from utils.delete_files_from_dir import delete_files_from_dir
 from config import settings
 
 # Convert it for more efficient processing
 # generate_parquet_from_csv() # Converts csv to parquet
 
-url_2023 = "https://data.lacity.org/resource/4a4x-mna2.csv"
-url_2022 = "https://data.lacity.org/resource/i5ke-k6by.csv"
-url_2021 = "https://data.lacity.org/resource/97z7-y5bt.csv"
-url_2020 = "https://data.lacity.org/resource/rq3b-xjk8.csv"
-url_2019 = "https://data.lacity.org/resource/pvft-t768.csv"
-url_2018 = "https://data.lacity.org/resource/h65r-yf5i.csv"
-url_2017 = "https://data.lacity.org/resource/d4vt-q4t5.csv"
+prefix = "https://data.lacity.org/resource/"
+suffix = ".csv"
+resources = [
+  {"year": "2023", "name": "4a4x-mna2"}
+  ,{"year": "2022", "name": "i5ke-k6by"}
+  ,{"year": "2021", "name": "97z7-y5bt"}
+  ,{"year": "2020", "name": "rq3b-xjk8"}
+  ,{"year": "2019", "name": "pvft-t768"}
+  # ,{"year": "2018", "name": "h65r-yf5i"}
+  # ,{"year": "2017", "name": "d4vt-q4t5"}
+]
 
 def main():
-  should_api_call = input("get latest API data? (Y/N): ")
+  should_api_call = input("download all years API data? (Y/N): ")
   if should_api_call.lower() == "y":
-
-    # Delete existing csv files
-    curr_csv_files = glob.glob(f'{settings.csv_data_path}/*.csv')
-    for f in curr_csv_files:
-      try:
-        os.remove(f)
-      except Exception as e:
-        print(f"Error occurred during file deletion. Status code: {e}")
-
-    url = "https://data.lacity.org/resource/4a4x-mna2.csv"
 
     max_rows = 2000000
     batch_size = 100000
     offset = 0
 
-    fetch_csv_from_api(url, max_rows, batch_size, offset)
+    for resource in resources:
+      year = resource['year']
+      url = f"{prefix}{resource['name']}{suffix}"
+      print(f"Downloading {resource['year']} data from {url}...")
+
+      # Delete existing csv files
+      curr_csv_dir = f'{settings.csv_data_path}/{year}'
+      delete_files_from_dir(curr_csv_dir, "csv")
+      fetch_csv_from_api(url, year, max_rows, batch_size, offset)
 
   should_parquet_transform = input("transform the CSV data to parquet? (Y/N): ")
   if should_parquet_transform.lower() == "y":
-    generate_parquet_from_csv()
-    print(f"Data transformed to parquet successfully.")
+
+    # Delete existing parquet files
+    parquet_dir = f'{settings.parquet_data_path}'
+    delete_files_from_dir(parquet_dir, "parquet")
+
+    # Generate new parquet files
+    for resource in resources:
+      year = resource['year']
+      generate_parquet_from_csv(year)
+      print(f"Data ({year}) transformed to parquet successfully.")
 
   should_seed_database = input("seed the database? (Y/N): ")
   if should_seed_database.lower() == "y":
