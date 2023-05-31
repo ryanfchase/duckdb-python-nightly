@@ -1,6 +1,6 @@
 # Ignore data, db, and other project specific files
 data/
-db/
+db/db.duckdb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

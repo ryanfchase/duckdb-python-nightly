@@ -1,6 +1,7 @@
 import duckdb
-import os
+import csv
 import glob
+import pandas as pd
 
 from utils.generate_parquet_from_csv import generate_parquet_from_csv
 from utils.fetch_csv_from_api import fetch_csv_from_api
@@ -13,13 +14,57 @@ from config import settings
 prefix = "https://data.lacity.org/resource/"
 suffix = ".csv"
 resources = [
-  {"year": "2023", "name": "4a4x-mna2"}
-  ,{"year": "2022", "name": "i5ke-k6by"}
-  ,{"year": "2021", "name": "97z7-y5bt"}
-  ,{"year": "2020", "name": "rq3b-xjk8"}
-  ,{"year": "2019", "name": "pvft-t768"}
-  # ,{"year": "2018", "name": "h65r-yf5i"}
-  # ,{"year": "2017", "name": "d4vt-q4t5"}
+  {"year": "2023", "name": "4a4x-mna2", "include": True},
+  {"year": "2022", "name": "i5ke-k6by", "include": True},
+  {"year": "2021", "name": "97z7-y5bt", "include": True},
+  {"year": "2020", "name": "rq3b-xjk8", "include": True},
+  {"year": "2019", "name": "pvft-t768", "include": True},
+  {"year": "2018", "name": "h65r-yf5i", "include": False},
+  {"year": "2017", "name": "d4vt-q4t5", "include": False}
+]
+def should_include(resource):
+  return resource['include'] == True
+
+def validate_zipcode(zipcode):
+  try:
+    int(zipcode) and len(f'{zipcode}') == 5
+    return True
+  except ValueError:
+    return False
+
+whitelisted_columns = ['srnumber',
+  'createddate',
+  'updateddate',
+  'actiontaken',
+  'owner',
+  'requesttype',
+  'status',
+  'requestsource',
+  'mobileos',
+  'anonymous',
+  'assignto',
+  'servicedate',
+  'closeddate',
+  'addressverified',
+  'approximateaddress',
+  'address',
+  'housenumber',
+  'direction',
+  'streetname',
+  'suffix',
+  'zipcode',
+  'latitude',
+  'longitude',
+  'location',
+  'tbmpage',
+  'tbmcolumn',
+  'tbmrow',
+  'apc',
+  'cd',
+  'cdmember',
+  'nc',
+  'ncname',
+  'policeprecinct'
 ]
 
 def main():
@@ -30,7 +75,7 @@ def main():
     batch_size = 100000
     offset = 0
 
-    for resource in resources:
+    for resource in list(filter(should_include, resources)):
       year = resource['year']
       url = f"{prefix}{resource['name']}{suffix}"
       print(f"Downloading {resource['year']} data from {url}...")
@@ -40,6 +85,28 @@ def main():
       delete_files_from_dir(curr_csv_dir, "csv")
       fetch_csv_from_api(url, year, max_rows, batch_size, offset)
 
+  should_clean_csv = input("clean the CSV data? (Y/N): ")
+  if should_clean_csv.lower() == "y":
+    all_request_dirs = glob.glob(f'{settings.csv_data_path}/*')
+
+    for year_dir in all_request_dirs:
+      year = year_dir.split("/")[-1]
+      print(f'data-cleaning -- processing year: {year}')
+      csv_files = glob.glob(f'{year_dir}/*.csv')
+
+      for csv_file in csv_files:
+        print(f'data-cleaning -- cleaning {csv_file}.') 
+        df = pd.read_csv(csv_file)
+        # convert column names to lowercase
+        df.columns = df.columns.str.lower()
+        # allow only whitelisted columns
+        df = df.filter(whitelisted_columns)
+        # remove rows with invalid zipcodes
+        df = df[df['zipcode'].apply(validate_zipcode)]
+        # overwrite csv file
+        df.to_csv(csv_file, index=False)
+        print(f'data-cleaning -- success') 
+
   should_parquet_transform = input("transform the CSV data to parquet? (Y/N): ")
   if should_parquet_transform.lower() == "y":
 
@@ -48,7 +115,7 @@ def main():
     delete_files_from_dir(parquet_dir, "parquet")
 
     # Generate new parquet files
-    for resource in resources:
+    for resource in list(filter(should_include, resources)):
       year = resource['year']
       generate_parquet_from_csv(year)
       print(f"Data ({year}) transformed to parquet successfully.")
